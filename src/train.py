@@ -13,10 +13,10 @@ import itertools
 MAX_EPISODES = 200
 
 env = TimeLimit(
-    env=HIVPatient(domain_randomization=True), max_episode_steps=200
+    env=HIVPatient(domain_randomization=False), max_episode_steps=200
 )
 
-path = os.path.join(os.getcwd(), 'src/grid_search_models')
+main_path = os.path.join(os.getcwd(), 'src/grid_search_models')
 
 class ReplayBuffer:
     def __init__(self, capacity, device):
@@ -56,11 +56,12 @@ class ProjectAgent:
             Q = self.model(torch.Tensor(observation).unsqueeze(0).to(device))
             return torch.argmax(Q).item()
 
-    def save(self, filename):
-        save_path = os.path.join(path, filename)
+    def save(self, path):
+        save_path = os.path.join(main_path, path)
         torch.save(self.model.state_dict(), save_path)
 
-    def load(self, filename='src/best_model_ita.pt'):
+    def load(self):
+        filename='best_model_ita.pt'
         load_path = os.path.join(os.getcwd(), filename)
         device = self._get_device()
         self.model = self._build_model({}, device)
@@ -98,7 +99,7 @@ class ProjectAgent:
             step += 1
 
         self.model.load_state_dict(self.best_model.state_dict())
-        self.save(filename=filename)
+        self.save(path=filename)
         return self.best_score
 
     def _build_model(self, config, device):
@@ -185,7 +186,7 @@ class ProjectAgent:
         if score > getattr(self, "best_score", float("-inf")):
             self.best_model = deepcopy(self.model)
             self.best_score = score
-            self.save(filename=filename)
+            self.save(path=filename)
         returns.append(reward)
         return episode
 
